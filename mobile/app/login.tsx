@@ -1,9 +1,9 @@
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function Login() {
   function handleLogin() {
-    router.push("/home");
+    router.replace("/(tabs)/home");
   }
 
   return (
@@ -29,9 +29,9 @@ export default function Login() {
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/register")}>
-        <Text style={styles.link}>Ainda não tenho conta</Text>
-      </TouchableOpacity>
+      <Link href="/register" style={styles.link}>
+        Ainda não tenho conta
+      </Link>
     </View>
   );
 }
