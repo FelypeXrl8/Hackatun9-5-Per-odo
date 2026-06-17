@@ -1,7 +1,9 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { ranking } from "../mocks/ranking";
+import { getRanking } from "../services/rankingService";
 
 export default function Ranking() {
+  const ranking = getRanking();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Ranking Geral</Text>

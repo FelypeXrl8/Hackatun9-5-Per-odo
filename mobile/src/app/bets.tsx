@@ -1,7 +1,9 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { bets } from "../mocks/bets";
+import { getMyBets } from "../services/betService";
 
 export default function Bets() {
+  const bets = getMyBets();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Meus Palpites</Text>
