@@ -12,8 +12,11 @@ public interface PalpiteRepository extends JpaRepository<Palpite, Long> {
 
     Optional<Palpite> findByUsuarioIdAndPartidaId(
             Long usuarioId,
-            Long partidaId);
+            Long partidaId
+    );
 
     List<Palpite> findByPartidaId(Long partidaId);
+
+    boolean existsByUsuarioIdAndPartidaId(Long usuarioId, Long partidaId);
 
 }
