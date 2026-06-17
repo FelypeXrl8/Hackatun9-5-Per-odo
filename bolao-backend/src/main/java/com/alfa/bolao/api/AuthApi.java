@@ -10,8 +10,11 @@ import com.alfa.bolao.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,5 +42,13 @@ public class AuthApi {
         String token = tokenService.gerarToken(usuario);
 
         return new LoginResponse(token);
+    }
+
+    @GetMapping("/me")
+    public Map<String, Object> me(Authentication authentication) {
+        return Map.of(
+                "email", authentication.getName(),
+                "authorities", authentication.getAuthorities()
+        );
     }
 }
