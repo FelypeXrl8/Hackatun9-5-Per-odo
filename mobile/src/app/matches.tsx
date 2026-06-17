@@ -1,44 +1,6 @@
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-const matches = [
-  {
-    id: 1,
-    teamA: "Brasil",
-    teamB: "Argentina",
-    codeA: "BRA",
-    codeB: "ARG",
-    date: "15/06/2026",
-    time: "16:00",
-    stadium: "MetLife Stadium",
-    phase: "Fase de Grupos",
-    status: "Aberta para palpites",
-  },
-  {
-    id: 2,
-    teamA: "França",
-    teamB: "Alemanha",
-    codeA: "FRA",
-    codeB: "ALE",
-    date: "16/06/2026",
-    time: "13:00",
-    stadium: "Estádio Azteca",
-    phase: "Fase de Grupos",
-    status: "Aberta para palpites",
-  },
-  {
-    id: 3,
-    teamA: "Portugal",
-    teamB: "Espanha",
-    codeA: "POR",
-    codeB: "ESP",
-    date: "17/06/2026",
-    time: "18:00",
-    stadium: "SoFi Stadium",
-    phase: "Fase de Grupos",
-    status: "Aberta para palpites",
-  },
-];
+import { matches } from "../mocks/matches";
 
 export default function Matches() {
   return (
@@ -56,7 +18,7 @@ export default function Matches() {
           onPress={() =>
             router.push({
               pathname: "/match/[id]",
-              params: { id: String(match.id) },
+              params: { id: match.id },
             })
           }
         >

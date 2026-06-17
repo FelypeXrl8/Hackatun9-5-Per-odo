@@ -1,39 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-
-const matches = [
-  {
-    id: "1",
-    teamA: "Brasil",
-    teamB: "Argentina",
-    codeA: "BRA",
-    codeB: "ARG",
-    date: "15/06/2026",
-    time: "16:00",
-    stadium: "MetLife Stadium",
-  },
-  {
-    id: "2",
-    teamA: "França",
-    teamB: "Alemanha",
-    codeA: "FRA",
-    codeB: "ALE",
-    date: "16/06/2026",
-    time: "13:00",
-    stadium: "Estádio Azteca",
-  },
-  {
-    id: "3",
-    teamA: "Portugal",
-    teamB: "Espanha",
-    codeA: "POR",
-    codeB: "ESP",
-    date: "17/06/2026",
-    time: "18:00",
-    stadium: "SoFi Stadium",
-  },
-];
+import { matches } from "../../mocks/matches";
 
 export default function MatchDetails() {
   const { id } = useLocalSearchParams();

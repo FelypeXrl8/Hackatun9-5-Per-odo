@@ -1,21 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-
-const bets = [
-  {
-    id: 1,
-    match: "Brasil x Argentina",
-    bet: "2 x 1",
-    result: "Aguardando resultado",
-    points: "Pendente",
-  },
-  {
-    id: 2,
-    match: "França x Alemanha",
-    bet: "1 x 1",
-    result: "Aguardando resultado",
-    points: "Pendente",
-  },
-];
+import { bets } from "../mocks/bets";
 
 export default function Bets() {
   return (
@@ -31,6 +15,7 @@ export default function Bets() {
           <Text style={styles.info}>Palpite: {bet.bet}</Text>
           <Text style={styles.info}>Resultado: {bet.result}</Text>
           <Text style={styles.points}>Pontuação: {bet.points}</Text>
+          <Text style={styles.criteria}>{bet.criteria}</Text>
         </View>
       ))}
     </ScrollView>
@@ -78,5 +63,10 @@ const styles = StyleSheet.create({
     color: "#16A34A",
     fontWeight: "bold",
     marginTop: 8,
+  },
+  criteria: {
+    color: "#64748B",
+    marginTop: 6,
+    fontSize: 13,
   },
 });
