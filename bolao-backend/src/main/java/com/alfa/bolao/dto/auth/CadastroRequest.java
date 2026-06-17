@@ -1,4 +1,4 @@
-package com.alfa.bolao.dto;
+package com.alfa.bolao.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

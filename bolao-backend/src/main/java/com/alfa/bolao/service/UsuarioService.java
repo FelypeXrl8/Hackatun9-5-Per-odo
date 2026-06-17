@@ -1,7 +1,7 @@
 package com.alfa.bolao.service;
 
-import com.alfa.bolao.dto.CadastroRequest;
-import com.alfa.bolao.dto.CadastroResponse;
+import com.alfa.bolao.dto.auth.CadastroRequest;
+import com.alfa.bolao.dto.auth.CadastroResponse;
 import com.alfa.bolao.model.Usuario;
 import com.alfa.bolao.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,5 +35,10 @@ public class UsuarioService {
                 salvo.getNome(),
                 salvo.getEmail()
         );
+    }
+
+    public Usuario buscarPorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos"));
     }
 }

@@ -1,4 +1,6 @@
 package com.alfa.bolao.dto.auth;
 
-public record LoginResponse() {
+public record LoginResponse(
+        String token
+) {
 }
