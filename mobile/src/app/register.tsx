@@ -1,11 +1,17 @@
 import { Link } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function Login() {
+export default function Register() {
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>Bolão Copa 2026</Text>
-      <Text style={styles.subtitle}>Entre para registrar seus palpites</Text>
+      <Text style={styles.title}>Criar conta</Text>
+      <Text style={styles.subtitle}>Cadastre-se para participar do bolão</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome"
+        placeholderTextColor="#64748B"
+      />
 
       <TextInput
         style={styles.input}
@@ -23,13 +29,13 @@ export default function Login() {
 
       <Link href="/home" asChild>
         <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>Entrar</Text>
+          <Text style={styles.buttonText}>Cadastrar</Text>
         </TouchableOpacity>
       </Link>
 
-      <Link href="/register" asChild>
+      <Link href="/" asChild>
         <TouchableOpacity activeOpacity={0.8}>
-          <Text style={styles.link}>Ainda não tenho conta</Text>
+          <Text style={styles.link}>Voltar para login</Text>
         </TouchableOpacity>
       </Link>
     </View>
@@ -43,9 +49,9 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: "center",
   },
-  logo: {
+  title: {
     color: "#FACC15",
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 8,
