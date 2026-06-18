@@ -30,13 +30,20 @@ public class Usuario implements UserDetails {
     private String password;
     private String privilegio; // "ADMIN" ou "USER"
 
-    // Ajuste crítico: inicializando para evitar NullPointerException amanhã
+
+    @Builder.Default
     private Integer pontuacaoTotal = 0;
+
+    @Builder.Default
     private Integer placaresExatos = 0;
+
+    @Builder.Default
     private Boolean bloqueado = false;
 
     private String avatar;
-    private LocalDateTime criadoEm = LocalDateTime.now(); // Já nasce com a data atual do cadastro
+
+    @Builder.Default
+    private LocalDateTime criadoEm = LocalDateTime.now();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
