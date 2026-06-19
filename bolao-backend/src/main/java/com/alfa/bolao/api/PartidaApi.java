@@ -1,5 +1,7 @@
 package com.alfa.bolao.api;
 
+import com.alfa.bolao.dto.partida.EncerrarPartidaRequest;
+import com.alfa.bolao.dto.partida.PartidaRequest;
 import com.alfa.bolao.dto.partida.PartidaResponse;
 import com.alfa.bolao.dto.partida.PartidasPorFaseResponse;
 import com.alfa.bolao.dto.partida.ResultadoPartidaRequest;
@@ -9,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.alfa.bolao.dto.partida.PartidaRequest;
 
 import java.util.List;
 
@@ -76,5 +77,18 @@ public class PartidaApi {
             @RequestBody @Valid ResultadoPartidaRequest request
     ) {
         return partidaService.lancarResultado(id, request);
+    }
+
+    @PutMapping("/{id}/encerrar")
+    @PreAuthorize("principal.claims['role'] == 'ADMIN'")
+    public PartidaResponse encerrar(
+            @PathVariable Long id,
+            @RequestBody @Valid EncerrarPartidaRequest request
+    ) {
+        return partidaService.encerrarPartida(
+                id,
+                request.golsMandante(),
+                request.golsVisitante()
+        );
     }
 }

@@ -1,21 +1,21 @@
 package com.alfa.bolao.service;
 
+import com.alfa.bolao.dto.partida.PartidaRequest;
 import com.alfa.bolao.dto.partida.PartidaResponse;
 import com.alfa.bolao.dto.partida.PartidasPorFaseResponse;
 import com.alfa.bolao.dto.partida.ResultadoPartidaRequest;
 import com.alfa.bolao.model.Partida;
+import com.alfa.bolao.model.Selecao;
 import com.alfa.bolao.repository.PartidaRepository;
+import com.alfa.bolao.repository.SelecaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.alfa.bolao.dto.partida.PartidaRequest;
-import com.alfa.bolao.model.Selecao;
-import com.alfa.bolao.repository.SelecaoRepository;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +62,16 @@ public class PartidaService {
         palpiteService.recalcularPontuacaoDaPartida(partidaAtualizada);
 
         return new PartidaResponse(partidaAtualizada);
+    }
+
+    @Transactional
+    public PartidaResponse encerrarPartida(Long id, Integer golsMandanteReal, Integer golsVisitanteReal) {
+        ResultadoPartidaRequest request = new ResultadoPartidaRequest(
+                golsMandanteReal,
+                golsVisitanteReal
+        );
+
+        return lancarResultado(id, request);
     }
 
     public List<PartidaResponse> listarProximasAbertas() {
