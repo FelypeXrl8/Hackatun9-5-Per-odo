@@ -10,6 +10,7 @@ import com.alfa.bolao.repository.PalpiteRepository;
 import com.alfa.bolao.repository.PartidaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -84,5 +85,41 @@ public class PalpiteService {
         Palpite atualizado = palpiteRepository.save(palpite);
 
         return new PalpiteResponse(atualizado);
+    }
+
+    public void recalcularPontuacaoDaPartida(Partida partida) {
+        List<Palpite> palpites = palpiteRepository.findByPartidaId(partida.getId());
+
+        for (Palpite palpite : palpites) {
+            int pontuacao = calcularPontuacao(
+                    palpite.getGolsMandante(),
+                    palpite.getGolsVisitante(),
+                    partida.getGolsMandante(),
+                    partida.getGolsVisitante()
+            );
+
+            palpite.setPontuacao(pontuacao);
+        }
+
+        palpiteRepository.saveAll(palpites);
+    }
+
+    private int calcularPontuacao(
+            int palpiteMandante,
+            int palpiteVisitante,
+            int resultadoMandante,
+            int resultadoVisitante
+    ) {
+        if (palpiteMandante == resultadoMandante &&
+                palpiteVisitante == resultadoVisitante) {
+            return 10;
+        }
+
+        if (Integer.signum(palpiteMandante - palpiteVisitante)
+                == Integer.signum(resultadoMandante - resultadoVisitante)) {
+            return 5;
+        }
+
+        return 0;
     }
 }

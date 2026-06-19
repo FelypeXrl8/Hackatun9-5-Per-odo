@@ -43,12 +43,4 @@ public class AuthApi {
 
         return new LoginResponse(token);
     }
-
-    @GetMapping("/me")
-    public Map<String, Object> me(Authentication authentication) {
-        return Map.of(
-                "email", authentication.getName(),
-                "authorities", authentication.getAuthorities()
-        );
-    }
 }
