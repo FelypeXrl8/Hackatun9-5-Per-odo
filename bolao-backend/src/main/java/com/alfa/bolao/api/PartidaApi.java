@@ -1,6 +1,5 @@
 package com.alfa.bolao.api;
 
-import com.alfa.bolao.dto.partida.EncerrarPartidaRequest;
 import com.alfa.bolao.dto.partida.PartidaRequest;
 import com.alfa.bolao.dto.partida.PartidaResponse;
 import com.alfa.bolao.dto.partida.PartidasPorFaseResponse;
