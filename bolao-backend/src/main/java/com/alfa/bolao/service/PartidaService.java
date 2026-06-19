@@ -64,16 +64,6 @@ public class PartidaService {
         return new PartidaResponse(partidaAtualizada);
     }
 
-    @Transactional
-    public PartidaResponse encerrarPartida(Long id, Integer golsMandanteReal, Integer golsVisitanteReal) {
-        ResultadoPartidaRequest request = new ResultadoPartidaRequest(
-                golsMandanteReal,
-                golsVisitanteReal
-        );
-
-        return lancarResultado(id, request);
-    }
-
     public List<PartidaResponse> listarProximasAbertas() {
         return partidaRepository.buscarProximasAbertas()
                 .stream()

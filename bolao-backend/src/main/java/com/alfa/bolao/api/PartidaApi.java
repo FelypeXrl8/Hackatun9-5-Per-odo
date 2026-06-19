@@ -78,17 +78,4 @@ public class PartidaApi {
     ) {
         return partidaService.lancarResultado(id, request);
     }
-
-    @PutMapping("/{id}/encerrar")
-    @PreAuthorize("principal.claims['role'] == 'ADMIN'")
-    public PartidaResponse encerrar(
-            @PathVariable Long id,
-            @RequestBody @Valid EncerrarPartidaRequest request
-    ) {
-        return partidaService.encerrarPartida(
-                id,
-                request.golsMandante(),
-                request.golsVisitante()
-        );
-    }
 }
