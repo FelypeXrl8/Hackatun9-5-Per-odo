@@ -1,17 +1,12 @@
-package com.alfa.bolao.dto.palpite;
+package com.alfa.bolao.dto.partida;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-public record AtualizarPalpiteRequest(
-
-        @NotNull
-        @Min(0)
+public record ResultadoPartidaRequest(
+        @NotNull @Min(0)
         Integer golsMandante,
 
-        @NotNull
-        @Min(0)
+        @NotNull @Min(0)
         Integer golsVisitante
-
-) {
-}
+) {}

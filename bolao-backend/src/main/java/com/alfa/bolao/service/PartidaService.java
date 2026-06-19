@@ -1,28 +1,33 @@
 package com.alfa.bolao.service;
 
+import com.alfa.bolao.dto.partida.PartidaRequest;
 import com.alfa.bolao.dto.partida.PartidaResponse;
+import com.alfa.bolao.dto.partida.PartidasPorFaseResponse;
+import com.alfa.bolao.dto.partida.ResultadoPartidaRequest;
 import com.alfa.bolao.model.Partida;
-import com.alfa.bolao.model.Palpite;
-import com.alfa.bolao.model.Usuario;
+import com.alfa.bolao.model.Selecao;
 import com.alfa.bolao.repository.PartidaRepository;
-import com.alfa.bolao.repository.PalpiteRepository;
-import com.alfa.bolao.repository.UsuarioRepository;
+import com.alfa.bolao.repository.SelecaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PartidaService {
 
     private final PartidaRepository partidaRepository;
-    private final PalpiteRepository palpiteRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final PalpiteService palpiteService;
+    private final SelecaoRepository selecaoRepository;
 
     public List<PartidaResponse> listar(String fase, String status, String grupo) {
         List<Partida> partidas;
+
         if (fase != null) {
             partidas = partidaRepository.findByFase(fase);
         } else if (status != null) {
@@ -32,58 +37,134 @@ public class PartidaService {
         } else {
             partidas = partidaRepository.findAll();
         }
-        return partidas.stream().map(PartidaResponse::new).toList();
+
+        return partidas.stream()
+                .map(PartidaResponse::new)
+                .toList();
     }
 
     public PartidaResponse detalhar(Long id) {
-        Partida partida = partidaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
+        Partida partida = buscarPartidaPorId(id);
+
         return new PartidaResponse(partida);
     }
 
-    // 🔥 MOTOR DE CÁLCULO AUTOMÁTICO (RF-030 E REGRA 4.1 DO PDF)
+    @Transactional
+    public PartidaResponse lancarResultado(Long id, ResultadoPartidaRequest request) {
+        Partida partida = buscarPartidaPorId(id);
+
+        partida.setGolsMandante(request.golsMandante());
+        partida.setGolsVisitante(request.golsVisitante());
+        partida.setStatus("FINALIZADA");
+
+        Partida partidaAtualizada = partidaRepository.save(partida);
+
+        palpiteService.recalcularPontuacaoDaPartida(partidaAtualizada);
+
+        return new PartidaResponse(partidaAtualizada);
+    }
+
     @Transactional
     public PartidaResponse encerrarPartida(Long id, Integer golsMandanteReal, Integer golsVisitanteReal) {
-        Partida partida = partidaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
+        ResultadoPartidaRequest request = new ResultadoPartidaRequest(
+                golsMandanteReal,
+                golsVisitanteReal
+        );
 
-        partida.setGolsMandante(golsMandanteReal);
-        partida.setGolsVisitante(golsVisitanteReal);
-        partida.setStatus("ENCERRADA");
-        partidaRepository.save(partida);
+        return lancarResultado(id, request);
+    }
 
-        List<Palpite> palpites = palpiteRepository.findByPartidaId(id);
+    public List<PartidaResponse> listarProximasAbertas() {
+        return partidaRepository.buscarProximasAbertas()
+                .stream()
+                .map(PartidaResponse::new)
+                .toList();
+    }
 
-        for (Palpite palpite : palpites) {
-            int pontosGanhos = 0;
-            boolean acertouPlacarExato = false;
+    public List<PartidasPorFaseResponse> listarAgrupadasPorFase() {
+        List<PartidaResponse> partidas = partidaRepository.findAll()
+                .stream()
+                .map(PartidaResponse::new)
+                .toList();
 
-            int palpiteM = palpite.getGolsMandante();
-            int palpiteV = palpite.getGolsVisitante();
+        Map<String, List<PartidaResponse>> partidasAgrupadas = partidas.stream()
+                .collect(Collectors.groupingBy(
+                        PartidaResponse::fase,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
 
-            // Regra 4.1 (a): Placar exato = 10 pontos
-            if (palpiteM == golsMandanteReal && palpiteV == golsVisitanteReal) {
-                pontosGanhos = 10;
-                acertouPlacarExato = true;
-            }
-            // Regra 4.1 (b): Acertou apenas vencedor ou empate = 5 pontos
-            else if (Integer.compare(palpiteM, palpiteV) == Integer.compare(golsMandanteReal, golsVisitanteReal)) {
-                pontosGanhos = 5;
-            }
+        return partidasAgrupadas.entrySet()
+                .stream()
+                .map(entry -> new PartidasPorFaseResponse(
+                        entry.getKey(),
+                        entry.getValue()
+                ))
+                .toList();
+    }
 
-            palpite.setPontuacao(pontosGanhos);
-            palpiteRepository.save(palpite);
+    @Transactional
+    public PartidaResponse criar(PartidaRequest request) {
+        Selecao mandante = buscarSelecaoPorId(request.mandanteId());
+        Selecao visitante = buscarSelecaoPorId(request.visitanteId());
 
-            Usuario usuario = palpite.getUsuario();
-            usuario.setPontuacaoTotal(usuario.getPontuacaoTotal() + pontosGanhos);
-
-            if (acertouPlacarExato) {
-                usuario.setPlacaresExatos(usuario.getPlacaresExatos() + 1);
-            }
-
-            usuarioRepository.save(usuario);
+        if (mandante.getId().equals(visitante.getId())) {
+            throw new RuntimeException("Mandante e visitante não podem ser a mesma seleção");
         }
 
-        return new PartidaResponse(partida);
+        Partida partida = Partida.builder()
+                .mandante(mandante)
+                .visitante(visitante)
+                .dataHora(request.dataHora())
+                .fase(request.fase())
+                .estadio(request.estadio())
+                .grupo(request.grupo())
+                .status(request.status() != null ? request.status() : "AGENDADA")
+                .build();
+
+        Partida partidaSalva = partidaRepository.save(partida);
+
+        return new PartidaResponse(partidaSalva);
+    }
+
+    @Transactional
+    public PartidaResponse atualizar(Long id, PartidaRequest request) {
+        Partida partida = buscarPartidaPorId(id);
+
+        Selecao mandante = buscarSelecaoPorId(request.mandanteId());
+        Selecao visitante = buscarSelecaoPorId(request.visitanteId());
+
+        if (mandante.getId().equals(visitante.getId())) {
+            throw new RuntimeException("Mandante e visitante não podem ser a mesma seleção");
+        }
+
+        partida.setMandante(mandante);
+        partida.setVisitante(visitante);
+        partida.setDataHora(request.dataHora());
+        partida.setFase(request.fase());
+        partida.setEstadio(request.estadio());
+        partida.setGrupo(request.grupo());
+        partida.setStatus(request.status() != null ? request.status() : partida.getStatus());
+
+        Partida partidaAtualizada = partidaRepository.save(partida);
+
+        return new PartidaResponse(partidaAtualizada);
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+        Partida partida = buscarPartidaPorId(id);
+
+        partidaRepository.delete(partida);
+    }
+
+    private Partida buscarPartidaPorId(Long id) {
+        return partidaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
+    }
+
+    private Selecao buscarSelecaoPorId(Long id) {
+        return selecaoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Seleção não encontrada"));
     }
 }

@@ -2,7 +2,7 @@ package com.alfa.bolao.service;
 
 import com.alfa.bolao.dto.ranking.RankingResponse;
 import com.alfa.bolao.model.Usuario;
-import com.alfa.bolao.repository.UsuarioRepository;
+import com.alfa.bolao.repository.PalpiteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,30 +13,35 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankingService {
 
-    private final UsuarioRepository usuarioRepository;
+    private final PalpiteRepository palpiteRepository;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
 
-    public List<RankingResponse> listarRanking() {
+    public List<RankingResponse> obterRanking() {
+        List<RankingResponse> rankingSemPosicao = palpiteRepository.buscarRanking();
 
-        List<Usuario> usuarios =
-                usuarioRepository
-                        .findAllByOrderByPontuacaoTotalDescPlacaresExatosDescCriadoEmAsc();
+        List<RankingResponse> rankingComPosicao = new ArrayList<>();
 
-        List<RankingResponse> ranking = new ArrayList<>();
+        for (int i = 0; i < rankingSemPosicao.size(); i++) {
+            RankingResponse item = rankingSemPosicao.get(i);
 
-        int posicao = 1;
-
-        for (Usuario usuario : usuarios) {
-
-            ranking.add(
-                    new RankingResponse(
-                            posicao++,
-                            usuario.getNome(),
-                            usuario.getPontuacaoTotal(),
-                            usuario.getPlacaresExatos()
-                    )
-            );
+            rankingComPosicao.add(new RankingResponse(
+                    i + 1,
+                    item.usuarioId(),
+                    item.nome(),
+                    item.pontos()
+            ));
         }
 
-        return ranking;
+        return rankingComPosicao;
+    }
+
+    public RankingResponse obterMinhaPosicao() {
+        Usuario usuario = usuarioAutenticadoService.obterUsuarioLogado();
+
+        return obterRanking()
+                .stream()
+                .filter(item -> item.usuarioId().equals(usuario.getId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado no ranking"));
     }
 }

@@ -30,7 +30,6 @@ public class Usuario implements UserDetails {
     private String password;
     private String privilegio; // "ADMIN" ou "USER"
 
-
     @Builder.Default
     private Integer pontuacaoTotal = 0;
 

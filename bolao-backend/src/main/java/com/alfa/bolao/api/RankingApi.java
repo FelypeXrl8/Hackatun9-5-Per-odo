@@ -18,6 +18,11 @@ public class RankingApi {
 
     @GetMapping
     public List<RankingResponse> listar() {
-        return rankingService.listarRanking();
+        return rankingService.obterRanking();
+    }
+
+    @GetMapping("/me")
+    public RankingResponse minhaPosicao() {
+        return rankingService.obterMinhaPosicao();
     }
 }
