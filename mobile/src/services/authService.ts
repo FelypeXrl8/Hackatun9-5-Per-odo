@@ -1,32 +1,10 @@
-type LoginData = {
-  email: string;
-  password: string;
-};
-
-type RegisterData = {
-  name: string;
-  email: string;
-  password: string;
-};
-
-export function login(data: LoginData) {
-  return {
-    token: "token-fake",
-    user: {
-      id: 1,
-      name: "Usuário Teste",
-      email: data.email,
-    },
-  };
+import * as SecureStore from "expo-secure-store";
+ 
+export async function getToken(): Promise<string | null> {
+  return SecureStore.getItemAsync("token");
 }
-
-export function register(data: RegisterData) {
-  return {
-    token: "token-fake",
-    user: {
-      id: 1,
-      name: data.name,
-      email: data.email,
-    },
-  };
+ 
+export async function isAutenticado(): Promise<boolean> {
+  const token = await getToken();
+  return token !== null;
 }
