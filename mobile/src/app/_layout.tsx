@@ -1,27 +1,23 @@
-import { Stack, useSegments, router } from "expo-router";
+import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { colors } from "../constants/colors";
 import { AuthProvider, useAuth } from "../contexts/authContext";
 
-// Componente separado para a lógica de proteção de rotas.
-// Precisa ficar DENTRO do AuthProvider para conseguir acessar o useAuth().
 function RoteamentoProtegido() {
   const { usuario, isLoading } = useAuth();
-
-  // useSegments retorna o caminho atual da navegação, ex: ["home"] ou ["match", "1"].
-  // Usamos isso para saber se o usuário está em uma rota pública ou protegida.
   const segments = useSegments();
 
   useEffect(() => {
-    if (isLoading) return; // Aguarda a verificação de sessão terminar antes de redirecionar.
-
+    if (isLoading) {
+      return;
+    }
     const rotaPublica = segments[0] === undefined || segments[0] === "register";
-
     if (!usuario && !rotaPublica) {
-      // Usuário não logado tentando acessar rota protegida → vai para login.
       router.replace("/");
-    } else if (usuario && rotaPublica) {
-      // Usuário já logado tentando acessar login/cadastro → vai para home.
+      return;
+    }
+    if (usuario && rotaPublica) {
       router.replace("/home");
     }
   }, [usuario, isLoading, segments]);
@@ -29,8 +25,8 @@ function RoteamentoProtegido() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#0B5D1E" },
-        headerTintColor: "#FFFFFF",
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.white,
         headerTitleStyle: { fontWeight: "bold" },
       }}
     >
@@ -48,7 +44,6 @@ function RoteamentoProtegido() {
 
 export default function RootLayout() {
   return (
-    // AuthProvider envolve tudo: qualquer tela dentro do app pode usar useAuth()
     <AuthProvider>
       <StatusBar style="light" />
       <RoteamentoProtegido />

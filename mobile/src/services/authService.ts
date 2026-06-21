@@ -1,9 +1,9 @@
-import * as SecureStore from "expo-secure-store";
- 
+import { storage } from "./storage";
+
 export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync("token");
+  return storage.getItem("token");
 }
- 
+
 export async function isAutenticado(): Promise<boolean> {
   const token = await getToken();
   return token !== null;

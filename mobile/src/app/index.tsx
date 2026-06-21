@@ -1,15 +1,13 @@
 import { Link } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { colors } from "../constants/colors";
 import { useAuth } from "../contexts/authContext";
 
 export default function Login() {
-  // Estado local para os campos do formulário
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [email, setEmail] = useState("renan@bolao.com");
+  const [senha, setSenha] = useState("123456");
   const [carregando, setCarregando] = useState(false);
-
-  // Pegamos a função login do contexto
   const { login } = useAuth();
 
   async function handleLogin() {
@@ -17,15 +15,12 @@ export default function Login() {
       Alert.alert("Atenção", "Informe e-mail e senha.");
       return;
     }
-
     try {
       setCarregando(true);
-      // Chama o AuthContext que chama a API e salva o token.
-      // Se der certo, o próprio contexto navega para /home.
       await login(email, senha);
-    } catch {
-      // O backend retornou erro (credenciais inválidas, servidor offline, etc.)
-      Alert.alert("Erro ao entrar", "E-mail ou senha incorretos. Tente novamente.");
+    } catch (error: any) {
+      const mensagem = error?.response?.data?.message || "Confira se o backend está rodando em http://localhost:8080.";
+      Alert.alert("Erro ao entrar", mensagem);
     } finally {
       setCarregando(false);
     }
@@ -36,36 +31,11 @@ export default function Login() {
       <Text style={styles.logo}>Bolão Copa 2026</Text>
       <Text style={styles.subtitle}>Entre para registrar seus palpites</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        placeholderTextColor="#64748B"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <TextInput style={styles.input} placeholder="E-mail" placeholderTextColor={colors.muted} keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Senha" placeholderTextColor={colors.muted} secureTextEntry value={senha} onChangeText={setSenha} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#64748B"
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-      />
-
-      <TouchableOpacity
-        style={[styles.button, carregando && styles.buttonDisabled]}
-        activeOpacity={0.8}
-        onPress={handleLogin}
-        disabled={carregando}
-      >
-        {carregando ? (
-          <ActivityIndicator color="#FFFFFF" />
-        ) : (
-          <Text style={styles.buttonText}>Entrar</Text>
-        )}
+      <TouchableOpacity style={[styles.button, carregando && styles.buttonDisabled]} activeOpacity={0.8} onPress={handleLogin} disabled={carregando}>
+        {carregando ? <ActivityIndicator color={colors.white} /> : <Text style={styles.buttonText}>Entrar</Text>}
       </TouchableOpacity>
 
       <Link href="/register" asChild>
@@ -78,51 +48,12 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0F172A",
-    padding: 24,
-    justifyContent: "center",
-  },
-  logo: {
-    color: "#FACC15",
-    fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: "#E2E8F0",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 32,
-  },
-  input: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 14,
-  },
-  button: {
-    backgroundColor: "#16A34A",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  link: {
-    color: "#FACC15",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 15,
-  },
+  container: { flex: 1, backgroundColor: colors.primary, padding: 24, justifyContent: "center" },
+  logo: { color: colors.accent, fontSize: 34, fontWeight: "bold", textAlign: "center", marginBottom: 8 },
+  subtitle: { color: colors.white, fontSize: 16, textAlign: "center", marginBottom: 32 },
+  input: { backgroundColor: colors.white, borderRadius: 14, padding: 15, fontSize: 16, marginBottom: 14 },
+  button: { backgroundColor: colors.secondary, borderRadius: 14, padding: 16, alignItems: "center", marginTop: 8 },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: colors.white, fontSize: 16, fontWeight: "bold" },
+  link: { color: colors.accent, textAlign: "center", marginTop: 20, fontSize: 15, fontWeight: "bold" },
 });
