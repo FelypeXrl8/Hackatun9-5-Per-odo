@@ -1,13 +1,12 @@
 package com.alfa.bolao.repository;
 
-import com.alfa.bolao.model.Usuario;
+import com.alfa.bolao.entity.Usuario;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface UsuarioRepository
-        extends JpaRepository<Usuario, Long> {
-
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
+    boolean existsByEmail(String email);
+    long countByCriadoEmAfter(LocalDateTime data);
 }

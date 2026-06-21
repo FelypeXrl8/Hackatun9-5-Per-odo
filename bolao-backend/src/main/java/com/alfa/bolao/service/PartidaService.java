@@ -1,160 +1,82 @@
 package com.alfa.bolao.service;
 
-import com.alfa.bolao.dto.partida.PartidaRequest;
-import com.alfa.bolao.dto.partida.PartidaResponse;
-import com.alfa.bolao.dto.partida.PartidasPorFaseResponse;
-import com.alfa.bolao.dto.partida.ResultadoPartidaRequest;
-import com.alfa.bolao.model.Partida;
-import com.alfa.bolao.model.Selecao;
+import com.alfa.bolao.dto.PartidaRequest;
+import com.alfa.bolao.dto.PartidaResponse;
+import com.alfa.bolao.dto.ResultadoRequest;
+import com.alfa.bolao.entity.Partida;
+import com.alfa.bolao.entity.Selecao;
+import com.alfa.bolao.entity.StatusPartida;
+import com.alfa.bolao.exception.BusinessException;
+import com.alfa.bolao.exception.NotFoundException;
 import com.alfa.bolao.repository.PartidaRepository;
-import com.alfa.bolao.repository.SelecaoRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Service
-@RequiredArgsConstructor
 public class PartidaService {
-
     private final PartidaRepository partidaRepository;
-    private final PalpiteService palpiteService;
-    private final SelecaoRepository selecaoRepository;
+    private final SelecaoService selecaoService;
+    private final PontuacaoService pontuacaoService;
 
-    public List<PartidaResponse> listar(String fase, String status, String grupo) {
-        List<Partida> partidas;
-
-        if (fase != null) {
-            partidas = partidaRepository.findByFase(fase);
-        } else if (status != null) {
-            partidas = partidaRepository.findByStatus(status);
-        } else if (grupo != null) {
-            partidas = partidaRepository.findByGrupo(grupo);
-        } else {
-            partidas = partidaRepository.findAll();
-        }
-
-        return partidas.stream()
-                .map(PartidaResponse::new)
-                .toList();
+    public PartidaService(PartidaRepository partidaRepository, SelecaoService selecaoService, PontuacaoService pontuacaoService) {
+        this.partidaRepository = partidaRepository;
+        this.selecaoService = selecaoService;
+        this.pontuacaoService = pontuacaoService;
     }
 
-    public PartidaResponse detalhar(Long id) {
-        Partida partida = buscarPartidaPorId(id);
-
-        return new PartidaResponse(partida);
+    public List<PartidaResponse> listar() {
+        return partidaRepository.findAllByOrderByDataHoraAsc().stream().map(PartidaResponse::from).toList();
     }
 
-    @Transactional
-    public PartidaResponse lancarResultado(Long id, ResultadoPartidaRequest request) {
-        Partida partida = buscarPartidaPorId(id);
-
-        partida.setGolsMandante(request.golsMandante());
-        partida.setGolsVisitante(request.golsVisitante());
-        partida.setStatus("FINALIZADA");
-
-        Partida partidaAtualizada = partidaRepository.save(partida);
-
-        palpiteService.recalcularPontuacaoDaPartida(partidaAtualizada);
-
-        return new PartidaResponse(partidaAtualizada);
+    public Partida buscarEntidade(Long id) {
+        return partidaRepository.findById(id).orElseThrow(() -> new NotFoundException("Partida não encontrada."));
     }
 
-    public List<PartidaResponse> listarProximasAbertas() {
-        return partidaRepository.buscarProximasAbertas()
-                .stream()
-                .map(PartidaResponse::new)
-                .toList();
+    public PartidaResponse buscar(Long id) {
+        return PartidaResponse.from(buscarEntidade(id));
     }
 
-    public List<PartidasPorFaseResponse> listarAgrupadasPorFase() {
-        List<PartidaResponse> partidas = partidaRepository.findAll()
-                .stream()
-                .map(PartidaResponse::new)
-                .toList();
-
-        Map<String, List<PartidaResponse>> partidasAgrupadas = partidas.stream()
-                .collect(Collectors.groupingBy(
-                        PartidaResponse::fase,
-                        LinkedHashMap::new,
-                        Collectors.toList()
-                ));
-
-        return partidasAgrupadas.entrySet()
-                .stream()
-                .map(entry -> new PartidasPorFaseResponse(
-                        entry.getKey(),
-                        entry.getValue()
-                ))
-                .toList();
-    }
-
-    @Transactional
     public PartidaResponse criar(PartidaRequest request) {
-        Selecao mandante = buscarSelecaoPorId(request.mandanteId());
-        Selecao visitante = buscarSelecaoPorId(request.visitanteId());
-
-        if (mandante.getId().equals(visitante.getId())) {
-            throw new RuntimeException("Mandante e visitante não podem ser a mesma seleção");
+        if (request.selecaoAId().equals(request.selecaoBId())) {
+            throw new BusinessException("A partida precisa ter duas seleções diferentes.");
         }
-
-        Partida partida = Partida.builder()
-                .mandante(mandante)
-                .visitante(visitante)
-                .dataHora(request.dataHora())
-                .fase(request.fase())
-                .estadio(request.estadio())
-                .grupo(request.grupo())
-                .status(request.status() != null ? request.status() : "AGENDADA")
-                .build();
-
-        Partida partidaSalva = partidaRepository.save(partida);
-
-        return new PartidaResponse(partidaSalva);
-    }
-
-    @Transactional
-    public PartidaResponse atualizar(Long id, PartidaRequest request) {
-        Partida partida = buscarPartidaPorId(id);
-
-        Selecao mandante = buscarSelecaoPorId(request.mandanteId());
-        Selecao visitante = buscarSelecaoPorId(request.visitanteId());
-
-        if (mandante.getId().equals(visitante.getId())) {
-            throw new RuntimeException("Mandante e visitante não podem ser a mesma seleção");
-        }
-
-        partida.setMandante(mandante);
-        partida.setVisitante(visitante);
+        Selecao selecaoA = selecaoService.buscarEntidade(request.selecaoAId());
+        Selecao selecaoB = selecaoService.buscarEntidade(request.selecaoBId());
+        Partida partida = new Partida();
+        partida.setSelecaoA(selecaoA);
+        partida.setSelecaoB(selecaoB);
         partida.setDataHora(request.dataHora());
-        partida.setFase(request.fase());
         partida.setEstadio(request.estadio());
+        partida.setFase(request.fase());
         partida.setGrupo(request.grupo());
-        partida.setStatus(request.status() != null ? request.status() : partida.getStatus());
+        partida.setStatus(StatusPartida.AGENDADA);
+        return PartidaResponse.from(partidaRepository.save(partida));
+    }
 
-        Partida partidaAtualizada = partidaRepository.save(partida);
+    public PartidaResponse atualizar(Long id, PartidaRequest request) {
+        Partida partida = buscarEntidade(id);
+        partida.setSelecaoA(selecaoService.buscarEntidade(request.selecaoAId()));
+        partida.setSelecaoB(selecaoService.buscarEntidade(request.selecaoBId()));
+        partida.setDataHora(request.dataHora());
+        partida.setEstadio(request.estadio());
+        partida.setFase(request.fase());
+        partida.setGrupo(request.grupo());
+        return PartidaResponse.from(partidaRepository.save(partida));
+    }
 
-        return new PartidaResponse(partidaAtualizada);
+    public void remover(Long id) {
+        partidaRepository.delete(buscarEntidade(id));
     }
 
     @Transactional
-    public void deletar(Long id) {
-        Partida partida = buscarPartidaPorId(id);
-
-        partidaRepository.delete(partida);
-    }
-
-    private Partida buscarPartidaPorId(Long id) {
-        return partidaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
-    }
-
-    private Selecao buscarSelecaoPorId(Long id) {
-        return selecaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seleção não encontrada"));
+    public PartidaResponse lancarResultado(Long id, ResultadoRequest request) {
+        Partida partida = buscarEntidade(id);
+        partida.setGolsA(request.golsA());
+        partida.setGolsB(request.golsB());
+        partida.setStatus(StatusPartida.ENCERRADA);
+        Partida salva = partidaRepository.save(partida);
+        pontuacaoService.recalcularPartida(salva);
+        return PartidaResponse.from(salva);
     }
 }

@@ -1,67 +1,53 @@
 package com.alfa.bolao.service;
 
-import com.alfa.bolao.dto.selecao.SelecaoRequest;
-import com.alfa.bolao.dto.selecao.SelecaoResponse;
-import com.alfa.bolao.model.Selecao;
+import com.alfa.bolao.dto.SelecaoRequest;
+import com.alfa.bolao.dto.SelecaoResponse;
+import com.alfa.bolao.entity.Selecao;
+import com.alfa.bolao.exception.BusinessException;
+import com.alfa.bolao.exception.NotFoundException;
 import com.alfa.bolao.repository.SelecaoRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
-@RequiredArgsConstructor
 public class SelecaoService {
-
     private final SelecaoRepository selecaoRepository;
 
-    public List<SelecaoResponse> listar() {
-        return selecaoRepository.findAll()
-                .stream()
-                .map(SelecaoResponse::new)
-                .toList();
+    public SelecaoService(SelecaoRepository selecaoRepository) {
+        this.selecaoRepository = selecaoRepository;
     }
 
-    public SelecaoResponse detalhar(Long id) {
-        Selecao selecao = buscarEntidadePorId(id);
+    public List<SelecaoResponse> listar() {
+        return selecaoRepository.findAll().stream().map(SelecaoResponse::from).toList();
+    }
 
-        return new SelecaoResponse(selecao);
+    public Selecao buscarEntidade(Long id) {
+        return selecaoRepository.findById(id).orElseThrow(() -> new NotFoundException("Seleção não encontrada."));
     }
 
     public SelecaoResponse criar(SelecaoRequest request) {
-        Selecao selecao = Selecao.builder()
-                .nome(request.nome())
-                .codigoFifa(request.codigoFifa())
-                .bandeira(request.bandeira())
-                .grupo(request.grupo())
-                .build();
-
-        Selecao selecaoSalva = selecaoRepository.save(selecao);
-
-        return new SelecaoResponse(selecaoSalva);
+        String codigo = request.codigoFifa().toUpperCase();
+        if (selecaoRepository.existsByCodigoFifa(codigo)) {
+            throw new BusinessException("Já existe uma seleção com este código FIFA.");
+        }
+        Selecao selecao = new Selecao();
+        selecao.setNome(request.nome());
+        selecao.setCodigoFifa(codigo);
+        selecao.setUrlImagem(request.urlImagem());
+        selecao.setGrupo(request.grupo());
+        return SelecaoResponse.from(selecaoRepository.save(selecao));
     }
 
     public SelecaoResponse atualizar(Long id, SelecaoRequest request) {
-        Selecao selecao = buscarEntidadePorId(id);
-
+        Selecao selecao = buscarEntidade(id);
         selecao.setNome(request.nome());
-        selecao.setCodigoFifa(request.codigoFifa());
-        selecao.setBandeira(request.bandeira());
+        selecao.setCodigoFifa(request.codigoFifa().toUpperCase());
+        selecao.setUrlImagem(request.urlImagem());
         selecao.setGrupo(request.grupo());
-
-        Selecao selecaoAtualizada = selecaoRepository.save(selecao);
-
-        return new SelecaoResponse(selecaoAtualizada);
+        return SelecaoResponse.from(selecaoRepository.save(selecao));
     }
 
-    public void deletar(Long id) {
-        Selecao selecao = buscarEntidadePorId(id);
-
-        selecaoRepository.delete(selecao);
-    }
-
-    private Selecao buscarEntidadePorId(Long id) {
-        return selecaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seleção não encontrada"));
+    public void remover(Long id) {
+        selecaoRepository.delete(buscarEntidade(id));
     }
 }

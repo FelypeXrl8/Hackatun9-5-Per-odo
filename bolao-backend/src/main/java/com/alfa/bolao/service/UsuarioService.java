@@ -1,44 +1,57 @@
 package com.alfa.bolao.service;
 
-import com.alfa.bolao.dto.auth.CadastroRequest;
-import com.alfa.bolao.dto.auth.CadastroResponse;
-import com.alfa.bolao.model.Usuario;
+import com.alfa.bolao.dto.AtualizarPerfilRequest;
+import com.alfa.bolao.dto.RankingResponse;
+import com.alfa.bolao.dto.UsuarioResponse;
+import com.alfa.bolao.entity.Usuario;
+import com.alfa.bolao.exception.NotFoundException;
+import com.alfa.bolao.repository.PalpiteRepository;
 import com.alfa.bolao.repository.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class UsuarioService {
-
     private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PalpiteRepository palpiteRepository;
 
-    public CadastroResponse cadastrar(CadastroRequest request) {
-
-        if (usuarioRepository.findByEmail(request.email()).isPresent()) {
-            throw new RuntimeException("E-mail já cadastrado");
-        }
-
-        Usuario usuario = Usuario.builder()
-                .nome(request.nome())
-                .email(request.email())
-                .password(passwordEncoder.encode(request.password()))
-                .privilegio("USER")
-                .build();
-
-        Usuario salvo = usuarioRepository.save(usuario);
-
-        return new CadastroResponse(
-                salvo.getId(),
-                salvo.getNome(),
-                salvo.getEmail()
-        );
+    public UsuarioService(UsuarioRepository usuarioRepository, PalpiteRepository palpiteRepository) {
+        this.usuarioRepository = usuarioRepository;
+        this.palpiteRepository = palpiteRepository;
     }
 
     public Usuario buscarPorEmail(String email) {
-        return usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("E-mail ou senha inválidos"));
+        return usuarioRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Usuário não encontrado."));
+    }
+
+    public UsuarioResponse atualizarPerfil(String email, AtualizarPerfilRequest request) {
+        Usuario usuario = buscarPorEmail(email);
+        usuario.setNome(request.nome());
+        usuario.setAvatarUrl(request.avatarUrl());
+        return UsuarioResponse.from(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public void excluirConta(String email) {
+        Usuario usuario = buscarPorEmail(email);
+        palpiteRepository.deleteAll(palpiteRepository.findByUsuario(usuario));
+        usuarioRepository.delete(usuario);
+    }
+
+    public List<RankingResponse> ranking() {
+        List<Usuario> usuarios = new ArrayList<>(usuarioRepository.findAll());
+        usuarios.sort(Comparator
+            .comparing(Usuario::getPontuacaoTotal).reversed()
+            .thenComparing(Comparator.comparing(Usuario::getPlacaresExatos).reversed())
+            .thenComparing(Usuario::getCriadoEm));
+        List<RankingResponse> ranking = new ArrayList<>();
+        for (int i = 0; i < usuarios.size(); i++) {
+            Usuario usuario = usuarios.get(i);
+            ranking.add(new RankingResponse(i + 1, usuario.getId(), usuario.getNome(), usuario.getPontuacaoTotal(), usuario.getPlacaresExatos()));
+        }
+        return ranking;
     }
 }
