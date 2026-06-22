@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários | Bolão Copa 2026</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<div class="wrapper">
+    <aside class="sidebar">
+        <div class="brand">Bolão 2026</div>
+        <div class="brand-subtitle">Painel administrativo</div>
+        <a class="nav-link" th:href="@{/admin}">Dashboard</a>
+        <a class="nav-link" th:href="@{/admin/selecoes}">Seleções</a>
+        <a class="nav-link" th:href="@{/admin/partidas}">Partidas</a>
+        <a class="nav-link active" th:href="@{/admin/usuarios}">Usuários</a>
+        <form class="logout-form" th:action="@{/admin/logout}" method="post">
+            <button class="logout-button" type="submit">Sair</button>
+        </form>
+    </aside>
+
+    <main class="main">
+        <section class="header">
+            <div>
+                <h1>Usuários</h1>
+                <p>Acompanhe pontuação, perfil e bloqueie ou desbloqueie acessos.</p>
+            </div>
+        </section>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <section class="card table-card">
+            <h2 class="card-title">Usuários cadastrados</h2>
+            <div th:if="${#lists.isEmpty(usuarios)}" class="empty">Nenhum usuário cadastrado ainda.</div>
+            <table th:if="${!#lists.isEmpty(usuarios)}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th>Pontos</th>
+                    <th>Placares exatos</th>
+                    <th>Cadastro</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="usuario : ${usuarios}">
+                    <td th:text="${usuario.id}">1</td>
+                    <td th:text="${usuario.nome}">Admin</td>
+                    <td th:text="${usuario.email}">admin@bolao.com</td>
+                    <td><span class="badge" th:text="${usuario.perfil}">ADMIN</span></td>
+                    <td th:text="${usuario.pontuacaoTotal}">0</td>
+                    <td th:text="${usuario.placaresExatos}">0</td>
+                    <td th:text="${#temporals.format(usuario.criadoEm, 'dd/MM/yyyy HH:mm')}">21/06/2026</td>
+                    <td>
+                        <span th:if="${usuario.bloqueado}" class="badge badge-danger">Bloqueado</span>
+                        <span th:if="${!usuario.bloqueado}" class="badge badge-success">Ativo</span>
+                    </td>
+                    <td>
+                        <form th:action="@{/admin/usuarios/{id}/bloqueio(id=${usuario.id})}" method="post" onsubmit="return confirm('Confirmar alteração de bloqueio deste usuário?')">
+                            <input type="hidden" name="bloqueado" th:value="${!usuario.bloqueado}">
+                            <button th:class="${usuario.bloqueado} ? 'btn btn-primary' : 'btn btn-danger'" type="submit" th:text="${usuario.bloqueado} ? 'Desbloquear' : 'Bloquear'">Bloquear</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

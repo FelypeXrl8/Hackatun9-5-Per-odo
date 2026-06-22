@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partidas | Bolão Copa 2026</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<div class="wrapper">
+    <aside class="sidebar">
+        <div class="brand">Bolão 2026</div>
+        <div class="brand-subtitle">Painel administrativo</div>
+        <a class="nav-link" th:href="@{/admin}">Dashboard</a>
+        <a class="nav-link" th:href="@{/admin/selecoes}">Seleções</a>
+        <a class="nav-link active" th:href="@{/admin/partidas}">Partidas</a>
+        <a class="nav-link" th:href="@{/admin/usuarios}">Usuários</a>
+        <form class="logout-form" th:action="@{/admin/logout}" method="post">
+            <button class="logout-button" type="submit">Sair</button>
+        </form>
+    </aside>
+
+    <main class="main">
+        <section class="header">
+            <div>
+                <h1>Partidas</h1>
+                <p>Cadastre, edite, remova, lance e corrija resultados. O ranking recalcula sozinho.</p>
+            </div>
+        </section>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <section class="card">
+            <h2 class="card-title">Nova partida</h2>
+            <form th:action="@{/admin/partidas}" method="post" class="form-grid">
+                <div class="form-group">
+                    <label for="selecaoAId">Seleção A</label>
+                    <select id="selecaoAId" name="selecaoAId" required>
+                        <option value="">Selecione</option>
+                        <option th:each="selecao : ${selecoes}" th:value="${selecao.id}" th:text="|${selecao.nome} (${selecao.codigoFifa})|"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="selecaoBId">Seleção B</label>
+                    <select id="selecaoBId" name="selecaoBId" required>
+                        <option value="">Selecione</option>
+                        <option th:each="selecao : ${selecoes}" th:value="${selecao.id}" th:text="|${selecao.nome} (${selecao.codigoFifa})|"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataHora">Data e hora</label>
+                    <input id="dataHora" type="datetime-local" name="dataHora" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="estadio">Estádio</label>
+                    <input id="estadio" name="estadio" placeholder="MetLife Stadium" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fase">Fase</label>
+                    <select id="fase" name="fase" required>
+                        <option value="Fase de grupos">Fase de grupos</option>
+                        <option value="Segunda Rodada">Segunda Rodada</option>
+                        <option value="Oitavas de final">Oitavas de final</option>
+                        <option value="Quartas de final">Quartas de final</option>
+                        <option value="Semi-finais">Semi-finais</option>
+                        <option value="Disputa Terceiro Lugar">Disputa Terceiro Lugar</option>
+                        <option value="Final">Final</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="grupo">Grupo</label>
+                    <input id="grupo" name="grupo" placeholder="A">
+                </div>
+
+                <div class="form-group full">
+                    <button class="btn btn-primary" type="submit">Cadastrar partida</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">Partidas cadastradas</h2>
+            <div th:if="${#lists.isEmpty(partidas)}" class="empty">Nenhuma partida cadastrada ainda.</div>
+
+            <div th:if="${!#lists.isEmpty(partidas)}" class="card-list">
+                <article class="item-card" th:each="partida : ${partidas}">
+                    <div class="item-header">
+                        <div>
+                            <h3>
+                                <span th:text="${partida.selecaoA.nome}">Brasil</span>
+                                <span> x </span>
+                                <span th:text="${partida.selecaoB.nome}">Argentina</span>
+                            </h3>
+                            <p>
+                                <span th:text="${#temporals.format(partida.dataHora, 'dd/MM/yyyy HH:mm')}">25/06/2026 16:00</span>
+                                <span> • </span>
+                                <span th:text="${partida.estadio}">Estádio</span>
+                            </p>
+                            <p>
+                                <span th:text="${partida.fase}">Fase</span>
+                                <span th:if="${partida.grupo != null and partida.grupo != ''}" th:text="| • Grupo ${partida.grupo}|"> • Grupo A</span>
+                            </p>
+                        </div>
+                        <div class="status-area">
+                            <span th:classappend="${partida.status.name() == 'ENCERRADA'} ? ' badge-danger' : ' badge-warning'" class="badge" th:text="${partida.status}">AGENDADA</span>
+                            <strong th:if="${partida.golsA != null and partida.golsB != null}" th:text="|${partida.golsA} x ${partida.golsB}|">0 x 0</strong>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/admin/partidas/{id}(id=${partida.id})}" method="post" class="compact-grid">
+                        <div class="form-group">
+                            <label>Seleção A</label>
+                            <select name="selecaoAId" required>
+                                <option th:each="selecao : ${selecoes}" th:value="${selecao.id}" th:selected="${selecao.id == partida.selecaoA.id}" th:text="|${selecao.nome} (${selecao.codigoFifa})|"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Seleção B</label>
+                            <select name="selecaoBId" required>
+                                <option th:each="selecao : ${selecoes}" th:value="${selecao.id}" th:selected="${selecao.id == partida.selecaoB.id}" th:text="|${selecao.nome} (${selecao.codigoFifa})|"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Data e hora</label>
+                            <input type="datetime-local" name="dataHora" th:value="${#temporals.format(partida.dataHora, 'yyyy-MM-dd''T''HH:mm')}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Estádio</label>
+                            <input name="estadio" th:value="${partida.estadio}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Fase</label>
+                            <select name="fase" required>
+                                <option value="Fase de grupos" th:selected="${partida.fase == 'Fase de grupos'}">Fase de grupos</option>
+                                <option value="Segunda Rodada" th:selected="${partida.fase == 'Segunda Rodada'}">Segunda Rodada</option>
+                                <option value="Oitavas de final" th:selected="${partida.fase == 'Oitavas de final'}">Oitavas de final</option>
+                                <option value="Quartas de final" th:selected="${partida.fase == 'Quartas de final'}">Quartas de final</option>
+                                <option value="Semi-finais" th:selected="${partida.fase == 'Semi-finais'}">Semi-finais</option>
+                                <option value="Disputa Terceiro Lugar" th:selected="${partida.fase == 'Disputa Terceiro Lugar'}">Disputa Terceiro Lugar</option>
+                                <option value="Final" th:selected="${partida.fase == 'Final'}">Final</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Grupo</label>
+                            <input name="grupo" th:value="${partida.grupo}">
+                        </div>
+
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit">Salvar edição</button>
+                        </div>
+                    </form>
+
+                    <form th:action="@{/admin/partidas/{id}/resultado(id=${partida.id})}" method="post" class="resultado-grid">
+                        <div class="form-group">
+                            <label>Gols A</label>
+                            <input type="number" min="0" name="golsA" th:value="${partida.golsA}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Gols B</label>
+                            <input type="number" min="0" name="golsB" th:value="${partida.golsB}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <button class="btn btn-secondary" type="submit" th:text="${partida.status.name() == 'ENCERRADA'} ? 'Corrigir resultado' : 'Lançar resultado'">Salvar resultado</button>
+                        </div>
+                    </form>
+
+                    <div class="actions danger-zone">
+                        <form th:if="${partida.status.name() == 'ENCERRADA'}" th:action="@{/admin/partidas/{id}/resultado/limpar(id=${partida.id})}" method="post" onsubmit="return confirm('Remover o resultado desta partida e recalcular o ranking?')">
+                            <button class="btn btn-muted" type="submit">Limpar resultado</button>
+                        </form>
+
+                        <form th:action="@{/admin/partidas/{id}/remover(id=${partida.id})}" method="post" onsubmit="return confirm('Excluir esta partida? Os palpites dela serão removidos e o ranking será recalculado.')">
+                            <button class="btn btn-danger" type="submit">Remover partida</button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
