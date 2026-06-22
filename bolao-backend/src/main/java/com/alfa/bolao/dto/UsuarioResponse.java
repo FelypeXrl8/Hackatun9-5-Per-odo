@@ -9,6 +9,7 @@ public record UsuarioResponse(
     String email,
     String avatarUrl,
     String perfil,
+    boolean bloqueado,
     Integer pontuacaoTotal,
     Integer placaresExatos,
     LocalDateTime criadoEm
@@ -20,6 +21,7 @@ public record UsuarioResponse(
             usuario.getEmail(),
             usuario.getAvatarUrl(),
             usuario.getPerfil().name(),
+            usuario.isBloqueado(),
             usuario.getPontuacaoTotal(),
             usuario.getPlacaresExatos(),
             usuario.getCriadoEm()

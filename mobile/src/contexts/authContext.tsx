@@ -8,6 +8,8 @@ type Usuario = {
   nome: string;
   email: string;
   avatarUrl?: string;
+  perfil?: string;
+  bloqueado?: boolean;
   pontuacaoTotal?: number;
   placaresExatos?: number;
 };

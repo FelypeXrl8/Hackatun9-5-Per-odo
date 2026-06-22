@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Bolão Copa 2026</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<div class="wrapper">
+    <aside class="sidebar">
+        <div class="brand">Bolão 2026</div>
+        <div class="brand-subtitle">Painel administrativo</div>
+        <a class="nav-link active" th:href="@{/admin}">Dashboard</a>
+        <a class="nav-link" th:href="@{/admin/selecoes}">Seleções</a>
+        <a class="nav-link" th:href="@{/admin/partidas}">Partidas</a>
+        <a class="nav-link" th:href="@{/admin/usuarios}">Usuários</a>
+        <form class="logout-form" th:action="@{/admin/logout}" method="post">
+            <button class="logout-button" type="submit">Sair</button>
+        </form>
+    </aside>
+
+    <main class="main">
+        <section class="header">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Resumo geral do sistema do bolão.</p>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="stat-card">
+                <div class="stat-label">Usuários</div>
+                <div class="stat-value" th:text="${totalUsuarios}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Seleções</div>
+                <div class="stat-value" th:text="${totalSelecoes}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Partidas</div>
+                <div class="stat-value" th:text="${totalPartidas}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Palpites</div>
+                <div class="stat-value" th:text="${totalPalpites}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Agendadas</div>
+                <div class="stat-value" th:text="${pendentes}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Encerradas</div>
+                <div class="stat-value" th:text="${encerradas}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Usuários nas últimas 24h</div>
+                <div class="stat-value" th:text="${usuarios24h}">0</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">Ações rápidas</h2>
+            <div class="actions">
+                <a class="btn btn-primary" th:href="@{/admin/partidas}">Cadastrar partida</a>
+                <a class="btn btn-secondary" th:href="@{/admin/selecoes}">Cadastrar seleção</a>
+                <a class="btn btn-muted" th:href="@{/admin/usuarios}">Bloquear usuários</a>
+            </div>
+        </section>
+
+        <section class="card table-card">
+            <h2 class="card-title">Top ranking</h2>
+            <div th:if="${#lists.isEmpty(ranking)}" class="empty">Nenhum usuário no ranking ainda.</div>
+            <table th:if="${!#lists.isEmpty(ranking)}">
+                <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Usuário</th>
+                    <th>Pontos</th>
+                    <th>Placares exatos</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${ranking}">
+                    <td th:text="|${item.position}º|">1º</td>
+                    <td th:text="${item.nome}">Usuário</td>
+                    <td th:text="${item.points}">0</td>
+                    <td th:text="${item.exactScores}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

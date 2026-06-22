@@ -26,8 +26,18 @@ export type Match = {
   abertaParaPalpite: boolean;
 };
 
-export async function getMatches() {
-  const response = await api.get<Match[]>("/api/partidas");
+export type MatchFilters = {
+  fase?: string;
+  status?: string;
+  dataInicio?: string;
+  dataFim?: string;
+};
+
+export async function getMatches(filters?: MatchFilters) {
+  const response = await api.get<Match[]>("/api/partidas", {
+    params: filters,
+  });
+
   return response.data;
 }
 

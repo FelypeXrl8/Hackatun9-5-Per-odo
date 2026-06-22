@@ -1,9 +1,6 @@
 package com.alfa.bolao.controller;
 
-import com.alfa.bolao.dto.CadastroRequest;
-import com.alfa.bolao.dto.LoginRequest;
-import com.alfa.bolao.dto.LoginResponse;
-import com.alfa.bolao.dto.UsuarioResponse;
+import com.alfa.bolao.dto.*;
 import com.alfa.bolao.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -12,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,5 +29,20 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody @Valid LoginRequest request) {
         return authService.login(request);
+
+    }
+
+    @PostMapping("/esqueci-senha")
+    public String esqueciSenha(
+            @RequestBody @Valid EsqueciMinhaSenhaRequest request) {
+
+        return authService.gerarTokenRecuperacao(request);
+    }
+
+    @PostMapping("/redefinir-senha")
+    public void redefinirSenha(
+            @RequestBody @Valid RedefinirSenhaRequest request) {
+
+        authService.redefinirSenha(request);
     }
 }

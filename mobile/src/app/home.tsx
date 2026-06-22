@@ -21,6 +21,15 @@ export default function Home() {
       <Link href="/matches" asChild><TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}><Text style={styles.primaryButtonText}>Ver Partidas</Text></TouchableOpacity></Link>
       <Link href="/bets" asChild><TouchableOpacity style={styles.secondaryButton} activeOpacity={0.8}><Text style={styles.secondaryButtonText}>Meus Palpites</Text></TouchableOpacity></Link>
       <Link href="/ranking" asChild><TouchableOpacity style={styles.secondaryButton} activeOpacity={0.8}><Text style={styles.secondaryButtonText}>Ver Ranking</Text></TouchableOpacity></Link>
+
+      {usuario?.perfil === "ADMIN" && (
+        <Link href="/admin-matches" asChild>
+          <TouchableOpacity style={styles.adminButton} activeOpacity={0.8}>
+            <Text style={styles.adminButtonText}>Cadastrar Partida</Text>
+          </TouchableOpacity>
+        </Link>
+      )}
+
       <Link href="/profile" asChild><TouchableOpacity style={styles.outlineButton} activeOpacity={0.8}><Text style={styles.outlineButtonText}>Meu Perfil</Text></TouchableOpacity></Link>
     </ScrollView>
   );
@@ -41,6 +50,8 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: colors.white, fontSize: 16, fontWeight: "bold" },
   secondaryButton: { backgroundColor: colors.accent, borderRadius: 14, padding: 16, alignItems: "center", marginBottom: 12 },
   secondaryButtonText: { color: colors.dark, fontSize: 16, fontWeight: "bold" },
+  adminButton: { backgroundColor: colors.dark, borderRadius: 14, padding: 16, alignItems: "center", marginBottom: 12 },
+  adminButtonText: { color: colors.white, fontSize: 16, fontWeight: "bold" },
   outlineButton: { borderWidth: 1, borderColor: colors.secondary, borderRadius: 14, padding: 16, alignItems: "center" },
   outlineButtonText: { color: colors.secondary, fontSize: 16, fontWeight: "bold" },
 });

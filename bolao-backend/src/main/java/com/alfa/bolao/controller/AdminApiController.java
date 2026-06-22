@@ -7,9 +7,9 @@ import com.alfa.bolao.dto.ResultadoRequest;
 import com.alfa.bolao.dto.SelecaoRequest;
 import com.alfa.bolao.dto.SelecaoResponse;
 import com.alfa.bolao.dto.UsuarioResponse;
-import com.alfa.bolao.repository.UsuarioRepository;
 import com.alfa.bolao.service.PartidaService;
 import com.alfa.bolao.service.SelecaoService;
+import com.alfa.bolao.service.UsuarioService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -29,12 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminApiController {
     private final SelecaoService selecaoService;
     private final PartidaService partidaService;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
 
-    public AdminApiController(SelecaoService selecaoService, PartidaService partidaService, UsuarioRepository usuarioRepository) {
+    public AdminApiController(SelecaoService selecaoService, PartidaService partidaService, UsuarioService usuarioService) {
         this.selecaoService = selecaoService;
         this.partidaService = partidaService;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping("/selecoes")
@@ -59,6 +59,11 @@ public class AdminApiController {
         selecaoService.remover(id);
     }
 
+    @GetMapping("/partidas")
+    public List<PartidaResponse> listarPartidas() {
+        return partidaService.listar();
+    }
+
     @PostMapping("/partidas")
     @ResponseStatus(HttpStatus.CREATED)
     public PartidaResponse criarPartida(@RequestBody @Valid PartidaRequest request) {
@@ -81,15 +86,18 @@ public class AdminApiController {
         return partidaService.lancarResultado(id, request);
     }
 
+    @DeleteMapping("/partidas/{id}/resultado")
+    public PartidaResponse limparResultado(@PathVariable Long id) {
+        return partidaService.limparResultado(id);
+    }
+
     @GetMapping("/usuarios")
     public List<UsuarioResponse> listarUsuarios() {
-        return usuarioRepository.findAll().stream().map(UsuarioResponse::from).toList();
+        return usuarioService.listarUsuarios();
     }
 
     @PatchMapping("/usuarios/{id}/bloqueio")
     public UsuarioResponse alterarBloqueio(@PathVariable Long id, @RequestBody BloqueioRequest request) {
-        var usuario = usuarioRepository.findById(id).orElseThrow();
-        usuario.setBloqueado(request.bloqueado());
-        return UsuarioResponse.from(usuarioRepository.save(usuario));
+        return usuarioService.alterarBloqueio(id, request.bloqueado());
     }
 }

@@ -67,25 +67,35 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void criarPartida(Selecao selecaoA, Selecao selecaoB, LocalDateTime dataHora, String estadio, String fase, String grupo) {
-        boolean existe = partidaRepository.findAll().stream()
-            .anyMatch(partida ->
-                partida.getSelecaoA().getId().equals(selecaoA.getId())
-                    && partida.getSelecaoB().getId().equals(selecaoB.getId())
-            );
+    Partida partidaExistente = partidaRepository.findAll().stream()
+        .filter(partida ->
+            partida.getSelecaoA().getId().equals(selecaoA.getId())
+                && partida.getSelecaoB().getId().equals(selecaoB.getId())
+        )
+        .findFirst()
+        .orElse(null);
 
-        if (existe) {
-            return;
+    if (partidaExistente != null) {
+        if (!LocalDateTime.now().isBefore(partidaExistente.getDataHora())) {
+            partidaExistente.setDataHora(dataHora);
+            partidaExistente.setStatus(StatusPartida.AGENDADA);
+            partidaExistente.setGolsA(null);
+            partidaExistente.setGolsB(null);
+            partidaRepository.save(partidaExistente);
         }
 
-        Partida partida = new Partida();
-        partida.setSelecaoA(selecaoA);
-        partida.setSelecaoB(selecaoB);
-        partida.setDataHora(dataHora);
-        partida.setEstadio(estadio);
-        partida.setFase(fase);
-        partida.setGrupo(grupo);
-        partida.setStatus(StatusPartida.AGENDADA);
-
-        partidaRepository.save(partida);
+        return;
     }
+
+    Partida partida = new Partida();
+    partida.setSelecaoA(selecaoA);
+    partida.setSelecaoB(selecaoB);
+    partida.setDataHora(dataHora);
+    partida.setEstadio(estadio);
+    partida.setFase(fase);
+    partida.setGrupo(grupo);
+    partida.setStatus(StatusPartida.AGENDADA);
+
+    partidaRepository.save(partida);
+}
 }

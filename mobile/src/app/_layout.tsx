@@ -12,12 +12,26 @@ function RoteamentoProtegido() {
     if (isLoading) {
       return;
     }
-    const rotaPublica = segments[0] === undefined || segments[0] === "register";
+
+    
+    const rotasPublicas = ["register", "forgot-password", "ranking", "redefinir-senha"];
+
+   
+    const rotaPublica = segments[0] === undefined || rotasPublicas.includes(segments[0]);
+
     if (!usuario && !rotaPublica) {
       router.replace("/");
       return;
     }
-    if (usuario && rotaPublica) {
+
+    // 3. AJUSTADO: Se o usuário estiver logado, ele não pode acessar Login, Cadastro, Esqueci Senha ou Redefinir Senha
+    const noFluxoAutenticacao = 
+      segments[0] === undefined || 
+      segments[0] === "register" || 
+      segments[0] === "forgot-password" || 
+      segments[0] === "redefinir-senha";
+
+    if (usuario && noFluxoAutenticacao) {
       router.replace("/home");
     }
   }, [usuario, isLoading, segments]);
@@ -32,8 +46,14 @@ function RoteamentoProtegido() {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ title: "Cadastro" }} />
+      <Stack.Screen name="forgot-password" options={{ title: "Recuperar Senha" }} /> 
+      
+      {/* 4. ADICIONADO: Declaração da tela de redefinir no navegador Stack */}
+      <Stack.Screen name="redefinir-senha" options={{ title: "Redefinir Senha" }} /> 
+      
       <Stack.Screen name="home" options={{ title: "Início" }} />
       <Stack.Screen name="matches" options={{ title: "Partidas" }} />
+      <Stack.Screen name="admin-matches" options={{ title: "Admin Partidas" }} />
       <Stack.Screen name="match/[id]" options={{ title: "Registrar Palpite" }} />
       <Stack.Screen name="bets" options={{ title: "Meus Palpites" }} />
       <Stack.Screen name="ranking" options={{ title: "Ranking" }} />
